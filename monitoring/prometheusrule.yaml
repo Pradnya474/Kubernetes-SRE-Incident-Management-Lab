@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: orders-api-alerts
+  namespace: sre-lab
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: orders-api.rules
+      rules:
+        - alert: OrdersAPIDown
+          expr: up{service="orders-api"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Orders API target is down
+            description: Prometheus cannot scrape the Orders API metrics endpoint.
+        - alert: OrdersAPIHigh5xxRate
+          expr: |
+            sum(rate(orders_http_requests_total{status=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(orders_http_requests_total[5m])), 0.001) > 0.05
+          for: 3m
+          labels:
+            severity: warning
+          annotations:
+            summary: Orders API 5xx ratio is above 5 percent
+            description: Investigate application logs and recent changes.

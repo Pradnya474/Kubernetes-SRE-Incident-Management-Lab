@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: orders-api
+  namespace: sre-lab
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - sre-lab
+  selector:
+    matchLabels:
+      app: orders-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
